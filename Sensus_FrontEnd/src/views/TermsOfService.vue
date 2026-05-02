@@ -4,7 +4,7 @@ import TopNav from '@/components/TopNav.vue'
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/faq" />
     <section class="content-wrap" :class="{ 'content-wrap--long': true }">
       <h1>Gebruikersvoorwaarden</h1>
       <p>Deze gebruikersvoorwaarden zijn van toepassing op het gebruik van de applicatie Sensus. Door de applicatie te gebruiken gaat de gebruiker akkoord met deze voorwaarden.</p>

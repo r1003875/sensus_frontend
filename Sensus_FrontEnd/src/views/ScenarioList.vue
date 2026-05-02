@@ -19,7 +19,7 @@ const startScenario = (scenario) => {
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/content-warning" />
     <section class="content-wrap content-wrap--wide">
       <h1>Scenario's</h1>
       <p>Kies een situatie die je wil verkennen</p>

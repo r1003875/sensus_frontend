@@ -10,7 +10,7 @@ const goNext = () => router.push('/content-warning')
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="code" />
     <section class="content-wrap">
       <h1>Informatie over jou</h1>
       <p>We gebruiken deze gegevens alleen voor het analyseren van data. Zo krijgen wij een beter beeld over gedrag van jongeren op vlak van toestemming.</p>

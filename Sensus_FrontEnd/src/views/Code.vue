@@ -38,14 +38,14 @@ const startSession = () => {
   const fullCode = code.value.join('')
   if (fullCode.length === 6) {
     // TODO: Validate code and start session
-    router.push('/scenario-lijst')
+    router.push('/gegevens')
   }
 }
 </script>
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/" />
     <section class="content-wrap">
       <h1>Voer de sessiecode in</h1>
       <p>Vraag je leerkracht of begeleider om de unieke sessiecode om verder te gaan.</p>

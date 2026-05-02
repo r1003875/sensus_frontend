@@ -4,7 +4,7 @@ import TopNav from '@/components/TopNav.vue'
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/faq" />
     <section class="content-wrap" :class="{ 'content-wrap--long': true }">
       <h1>Privacybeleid</h1>
       <p>Dit privacybeleid beschrijft hoe Sensus persoonsgegevens verzamelt, gebruikt en beschermt.</p>

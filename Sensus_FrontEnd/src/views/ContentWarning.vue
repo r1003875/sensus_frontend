@@ -10,7 +10,7 @@ const goNext = () => router.push('/scenario-lijst')
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/gegevens" />
     <section class="content-wrap">
       <h1>Voor je begint</h1>
       <p>Deze tool toont situaties die gaan over grenzen, communicatie en online gedrag. Sommige momenten kunnen gevoelig aanvoelen. Je kunt altijd stoppen.</p>

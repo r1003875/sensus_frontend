@@ -1,16 +1,20 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 
+const route = useRoute()
 const router = useRouter()
 
-const goPrivacy = () => router.push('/privacybeleid')
-const goTerms = () => router.push('/gebruikersvoorwaarden')
+const backTo = computed(() => (typeof route.query.backTo === 'string' && route.query.backTo) || '/')
+
+const goPrivacy = () => router.push({ path: '/privacybeleid', query: { backTo: backTo.value } })
+const goTerms = () => router.push({ path: '/gebruikersvoorwaarden', query: { backTo: backTo.value } })
 </script>
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav :backTo="backTo" />
     <section class="content-wrap">
       <h1>FAQ</h1>
       <h2>Hoe werkt deze tool?</h2>

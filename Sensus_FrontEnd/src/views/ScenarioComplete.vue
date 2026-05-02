@@ -20,7 +20,7 @@ const learnings = [
 
 <template>
   <main class="app-screen">
-    <TopNav />
+    <TopNav backTo="/scenario-lijst" />
     <section class="content-wrap">
       <h1>Je hebt het scenario afgerond!</h1>
       <p>Goed gedaan! Je hebt scenario 1 succesvol afgerond. Bedankt voor je deelname.</p>

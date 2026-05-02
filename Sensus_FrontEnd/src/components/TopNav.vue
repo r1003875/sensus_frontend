@@ -1,10 +1,17 @@
 <script setup>
 import { useRouter } from 'vue-router'
 
+const props = defineProps({
+  backTo: {
+    type: String,
+    required: true,
+  },
+})
+
 const router = useRouter()
 
-const goBack = () => router.push('/')
-const goFaq = () => router.push('/faq')
+const goBack = () => router.push(props.backTo)
+const goFaq = () => router.push({ path: '/faq', query: { backTo: props.backTo } })
 </script>
 
 <template>

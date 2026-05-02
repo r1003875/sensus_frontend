@@ -4,7 +4,7 @@ import PrimaryButton from '@/components/PrimaryButton.vue'
 
 const router = useRouter()
 
-const startApp = () => router.push('/gegevens')
+const startApp = () => router.push('/code')
 </script>
 
 <template>
