@@ -6,6 +6,7 @@ import ScenarioList from '../views/ScenarioList.vue'
 import ScenarioIntro from '../views/ScenarioIntro.vue'
 import SafeExit from '../views/SafeExit.vue'
 import ScenarioComplete from '../views/ScenarioComplete.vue'
+import Code from '../views/Code.vue'
 import FAQ from '../views/FAQ.vue'
 import TermsOfService from '../views/TermsOfService.vue'
 import PrivacyPolicy from '../views/PrivacyPolicy.vue'
@@ -18,6 +19,7 @@ const routes = [
   { path: '/', name: 'start', component: Start },
   { path: '/gegevens', name: 'gegevens', component: UserInfo },
   { path: '/content-warning', name: 'content-warning', component: ContentWarning },
+  { path: '/code', name: 'code', component: Code },
   { path: '/scenario-lijst', name: 'scenario-lijst', component: ScenarioList },
   { path: '/intro-scenario', name: 'intro-scenario', component: ScenarioIntro },
   { path: '/safe-exit', name: 'safe-exit', component: SafeExit },
