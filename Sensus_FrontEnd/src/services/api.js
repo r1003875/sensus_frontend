@@ -5,29 +5,30 @@ const normalizeScenario = (item) => {
   const source = item?.attributes ?? item ?? {}
 
   return {
-    id: item?.id ?? item?.documentId ?? source.id ?? source.documentId ?? source.slug ?? source.title,
-    title: source.title ?? source.name ?? source.titel ?? 'Onbekend scenario',
-    desc: source.desc ?? source.description ?? source.intro ?? source.summary ?? '',
-    tag: source.tag ?? source.category?.name ?? source.category ?? '',
-    duration: source.duration ?? source.length ?? source.durationText ?? '',
+    id: item?.id,
+    title: source.title,
+    desc: source.description,
+    tag: source.context,
+    min_age: source.age_min,
+    max_age: source.age_max,
+    is_active: source.is_active,
     raw: item,
   }
 }
 
 const normalizeScenarioList = (payload) => {
+  let scenarios = []
+
   if (Array.isArray(payload)) {
-    return payload.map(normalizeScenario)
+    scenarios = payload.map(normalizeScenario)
+  } else if (Array.isArray(payload?.data)) {
+    scenarios = payload.data.map(normalizeScenario)
+  } else if (Array.isArray(payload?.scenarios)) {
+    scenarios = payload.scenarios.map(normalizeScenario)
   }
 
-  if (Array.isArray(payload?.data)) {
-    return payload.data.map(normalizeScenario)
-  }
-
-  if (Array.isArray(payload?.scenarios)) {
-    return payload.scenarios.map(normalizeScenario)
-  }
-
-  return []
+  // Filter out inactive scenarios
+  return scenarios.filter((scenario) => scenario.is_active !== false)
 }
 
 export const fetchScenarios = async () => {
