@@ -1,14 +1,13 @@
 <script setup>
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
 import SecondaryButton from '@/components/SecondaryButton.vue'
 
-const route = useRoute()
 const router = useRouter()
 
 const startScenario = () => router.push('/404')
-const pauseScenario = () => router.push({ path: '/safe-exit', query: { returnTo: route.fullPath } })
+const pauseScenario = () => router.push('/safe-exit')
 </script>
 
 <template>
