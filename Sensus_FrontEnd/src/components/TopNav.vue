@@ -16,7 +16,7 @@ const goFaq = () => router.push({ path: '/faq', query: { backTo: props.backTo } 
 
 <template>
   <header class="top-nav">
-    <button class="link-btn" @click="goBack">Terug</button>
-    <button class="icon-btn" @click="goFaq">?</button>
+    <button class="link-btn back-btn" @click="goBack"><img src="../assets/icons/fi-rr-arrow-small-left.svg" alt="Terug" />Terug</button>
+    <button class="icon-btn" @click="goFaq"><img src="../assets/icons/fi-rr-interrogation.svg" alt="FAQ" /></button>
   </header>
 </template>
