@@ -2,9 +2,71 @@
 
 :root {
   --neutral-100: #ffffff;
-  --neutral-500: #1e1e1e;
+  --neutral-200: #F7F4F2;
+  --neutral-300: #E8E5E3;
   --neutral-400: #454147;
-  --purple-600: #a50a7e;
+  --neutral-500: #1E1E1E;
+
+  --purple-100: #F6D8EE;
+  --purple-200: #E6AFD8;
+  --purple-300: #D686C1;
+  --purple-400: #C55CAB;
+  --purple-500: #B53394;
+  --purple-600: #A50A7E;
+  --purple-700: #8A0865;
+  --purple-800: #6F0553;
+  --purple-900: #54023E;
+
+  --blue-100: #D2E7F0;
+  --blue-200: #A9C7D3;
+  --blue-300: #80A7B6;
+  --blue-400: #58869A;
+  --blue-500: #2F667D;
+  --blue-600: #064660;
+  --blue-700: #053C52;
+  --blue-800: #033245;
+  --blue-900: #022837;
+
+  /* semantic colors */
+  --error-100: #FFCFCF;
+  --error-200: #F6A2A2;
+  --error-300: #ED7575;
+  --error-400: #E24848;
+  --error-500: #DB1B1B;
+  --error-600: #BA1414;
+  --error-700: #980E0E;
+  --error-800: #770707;
+  --error-900: #550000;
+
+  --success-100: #BFFDCC;
+  --success-200: #97F1AA;
+  --success-300: #6FE589;
+  --success-400: #47D967;
+  --success-500: #1FCD45;
+  --success-600: #17AA37;
+  --success-700: #10872A;
+  --success-800: #08641C;
+  --success-900: #00410E;
+
+  --warning-100: #FFEACB;
+  --warning-200: #FFD9A0;
+  --warning-300: #FFC875;
+  --warning-400: #FFB64A;
+  --warning-500: #FFA51F;
+  --warning-600: #E29017;
+  --warning-700: #C47C10;
+  --warning-800: #A76708;
+  --warning-900: #895200;
+
+  --info-100: #DAE8FE;
+  --info-200: #B2CFFC;
+  --info-300: #8BB5FA;
+  --info-400: #639CF8;
+  --info-500: #3B82F6;
+  --info-600: #2C66C3;
+  --info-700: #1E4990;
+  --info-800: #0F2D5D;
+  --info-900: #00102A;
 }
 
 * {
@@ -132,7 +194,7 @@ body {
 }
 
 .required {
-  color: #ba1414;
+  color: var(--error-600);
 }
 
 label {
@@ -148,7 +210,7 @@ select {
   font-family: inherit;
   font-size: 16px;
   color: var(--neutral-400);
-  background: #fff;
+  background: var(--neutral-100);
 }
 
 .primary-btn,
@@ -180,10 +242,18 @@ select {
   box-shadow: inset 0 -1px 2px rgba(14, 14, 44, 0.4);
 }
 
+.primary-btn:hover{
+  background: var(--purple-700);
+}
+
 .secondary-btn {
-  background: #d2e7f0;
-  color: #022837;
+  background: var(--neutral-200);
+  color: var(--neutral-500);
   box-shadow: inset 0 -1px 2px rgba(14, 14, 44, 0.4);
+}
+
+.secondary-btn:hover {
+  background: var(--neutral-300);
 }
 
 .link-btn,
