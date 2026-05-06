@@ -6,11 +6,13 @@ import PrimaryButton from '@/components/PrimaryButton.vue'
 
 const router = useRouter()
 const code = ref(['', '', '', '', '', ''])
+const showError = ref(false)
 
 const handleInput = (index, event) => {
   const value = event.target.value
   if (value.length <= 1) {
     code.value[index] = value.toUpperCase()
+    showError.value = false
     // Move to next input if value entered
     if (value && index < 5) {
       const nextInput = document.querySelector(`input[data-index="${index + 1}"]`)
@@ -36,8 +38,13 @@ const handleKeyDown = (index, event) => {
 
 const startSession = () => {
   const fullCode = code.value.join('')
+  if (fullCode.length === 0) {
+    showError.value = true
+    return
+  }
   if (fullCode.length === 6) {
     // TODO: Validate code and start session
+    showError.value = false
     router.push('/gegevens')
   }
 }
@@ -61,10 +68,12 @@ const startSession = () => {
           inputmode="uppercase"
           maxlength="1"
           class="code-box"
+          :class="{ 'code-box--error': showError }"
           @input="handleInput(index, $event)"
           @keydown="handleKeyDown(index, $event)"
         />
       </div>
+      <div v-if="showError" class="error-message">Voer een sessiecode in</div>
       <PrimaryButton text="Start" @click="startSession" />
     </section>
   </main>
@@ -99,5 +108,16 @@ const startSession = () => {
 
 .code-box::placeholder {
   color: #e8e5e3;
+}
+
+.code-box--error {
+  border-color: var(--error-600);
+}
+
+.error-message {
+  color: var(--error-600);
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
 }
 </style>
