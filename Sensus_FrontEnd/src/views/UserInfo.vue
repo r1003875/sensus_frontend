@@ -1,11 +1,24 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
 
 const router = useRouter()
 
-const goNext = () => router.push('/content-warning')
+const age = ref('')
+const gender = ref('')
+const ageError = ref(false)
+const genderError = ref(false)
+
+const goNext = () => {
+  ageError.value = !age.value
+  genderError.value = !gender.value
+
+  if (!ageError.value && !genderError.value) {
+    router.push('/content-warning')
+  }
+}
 </script>
 
 <template>
@@ -16,7 +29,7 @@ const goNext = () => router.push('/content-warning')
       <p>We gebruiken deze gegevens alleen voor het analyseren van data. Zo krijgen wij een beter beeld over gedrag van jongeren op vlak van toestemming.</p>
       <small class="required">Verplicht*</small>
       <label>Leeftijd*</label>
-      <select required>
+      <select v-model="age" required :class="{ 'select--error': ageError }">
         <option value="" disabled selected>Selecteer je leeftijd</option>
         <option value="15">15</option>
         <option value="16">16</option>
@@ -29,16 +42,34 @@ const goNext = () => router.push('/content-warning')
         <option value="23">23</option>
         <option value="24">24</option>
       </select>
+      <div v-if="ageError" class="error-message">Selecteer je leeftijd</div>
       <label>Gender*</label>
-      <select required>
+      <select v-model="gender" required :class="{ 'select--error': genderError }">
         <option value="" disabled selected>Selecteer je gender</option>
         <option value="man">Man</option>
         <option value="vrouw">Vrouw</option>
         <option value="non-binair">Non-binair</option>
         <option value="overige">Overige</option>
       </select>
+      <div v-if="genderError" class="error-message">Selecteer je gender</div>
       <p>Door verder te gaan ga je akkoord dat deze gegevens worden gebruikt voor het analyseren van data. Je deelname blijft volledig anoniem.</p>
       <PrimaryButton text="Ga verder" @click="goNext" />
     </section>
   </main>
 </template>
+
+<style scoped>
+select {
+  transition: border-color 0.2s;
+}
+
+.select--error {
+  border-color: var(--error-600);
+}
+
+.error-message {
+  color: var(--error-600);
+  font-size: 14px;
+  margin-top: 8px;
+}
+</style>
