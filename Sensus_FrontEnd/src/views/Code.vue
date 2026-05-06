@@ -57,7 +57,7 @@ const startSession = () => {
       <h1>Voer de sessiecode in</h1>
       <p>Vraag je leerkracht of begeleider om de unieke sessiecode om verder te gaan.</p>
       <small class="required">Verplicht*</small>
-      <label>Code*</label>
+      <label>Code<span class="required">*</span></label>
       <div class="code-input">
         <input
           v-for="(digit, index) in code"

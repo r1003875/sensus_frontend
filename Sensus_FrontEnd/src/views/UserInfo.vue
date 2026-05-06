@@ -28,7 +28,7 @@ const goNext = () => {
       <h1>Informatie over jou</h1>
       <p>We gebruiken deze gegevens alleen voor het analyseren van data. Zo krijgen wij een beter beeld over gedrag van jongeren op vlak van toestemming.</p>
       <small class="required">Verplicht*</small>
-      <label>Leeftijd*</label>
+      <label>Leeftijd<span class="required">*</span></label>
       <select v-model="age" required :class="{ 'select--error': ageError }">
         <option value="" disabled selected>Selecteer je leeftijd</option>
         <option value="15">15</option>
@@ -43,7 +43,7 @@ const goNext = () => {
         <option value="24">24</option>
       </select>
       <div v-if="ageError" class="error-message">Selecteer je leeftijd</div>
-      <label>Gender*</label>
+      <label>Gender<span class="required">*</span></label>
       <select v-model="gender" required :class="{ 'select--error': genderError }">
         <option value="" disabled selected>Selecteer je gender</option>
         <option value="man">Man</option>
