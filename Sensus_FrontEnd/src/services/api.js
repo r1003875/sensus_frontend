@@ -5,13 +5,57 @@ const normalizeScenario = (item) => {
   const source = item?.attributes ?? item ?? {}
 
   return {
-    id: item?.id,
+    documentId: item?.documentId ?? source?.documentId ?? '',
     title: source.title,
     desc: source.description,
     tag: source.context,
     min_age: source.age_min,
     max_age: source.age_max,
     is_active: source.is_active,
+    raw: item,
+  }
+}
+
+const normalizeScene = (item) => {
+  const source = item?.attributes ?? item ?? {}
+  const mediaData = source?.content_media?.data ?? source?.content_media ?? null
+  const mediaAttributes = mediaData?.attributes ?? mediaData ?? {}
+
+  const extractText = (value) => {
+    if (typeof value === 'string') {
+      return value
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => extractText(entry))
+        .filter(Boolean)
+        .join('\n')
+    }
+
+    if (value && typeof value === 'object') {
+      if (typeof value.text === 'string') {
+        return value.text
+      }
+
+      if (Array.isArray(value.children)) {
+        return value.children
+          .map((child) => extractText(child))
+          .filter(Boolean)
+          .join(' ')
+      }
+    }
+
+    return ''
+  }
+
+  return {
+    id: item?.id ?? source?.id,
+    order_index: Number(source?.order_index ?? 0),
+    title: extractText(source?.title),
+    content_text: extractText(source?.content_text),
+    content_media: mediaAttributes?.url ?? mediaAttributes?.formats?.medium?.url ?? mediaAttributes?.formats?.small?.url ?? source?.content_media ?? '',
+    question: extractText(source?.question?.text ?? source?.question_text ?? source?.question),
     raw: item,
   }
 }
@@ -27,8 +71,8 @@ const normalizeScenarioList = (payload) => {
     scenarios = payload.scenarios.map(normalizeScenario)
   }
 
-  // Filter out inactive scenarios
-  return scenarios.filter((scenario) => scenario.is_active !== false)
+  // Keep active scenarios that can be fetched by Strapi documentId.
+  return scenarios.filter((scenario) => scenario.is_active !== false && Boolean(scenario.documentId))
 }
 
 export const fetchScenarios = async () => {
@@ -50,9 +94,13 @@ export const fetchScenarios = async () => {
   }
 }
 
-export const fetchScenario = async (id) => {
+export const fetchScenario = async (documentId) => {
+  if (!documentId) {
+    throw new Error('Missing scenario documentId')
+  }
+
   try {
-    const response = await fetch(`${API_BASE}/scenarios/${id}`, {
+    const response = await fetch(`${API_BASE}/scenarios/${encodeURIComponent(documentId)}`, {
       headers: {
         Authorization: `Bearer ${BEARER_TOKEN}`,
         Accept: 'application/json',
@@ -64,7 +112,47 @@ export const fetchScenario = async (id) => {
     const payload = await response.json()
     return normalizeScenario(payload?.data ?? payload)
   } catch (error) {
-    console.error(`Failed to fetch scenario ${id}:`, error)
+    console.error(`Failed to fetch scenario ${documentId}:`, error)
+    throw error
+  }
+}
+
+export const fetchScenarioScenes = async (scenarioDocumentId) => {
+  if (!scenarioDocumentId) {
+    throw new Error('Missing scenario documentId')
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/scenarios/${encodeURIComponent(scenarioDocumentId)}?populate[scenes][populate]=content_media`,
+      {
+        headers: {
+          Authorization: `Bearer ${BEARER_TOKEN}`,
+          Accept: 'application/json',
+        }
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    const payload = await response.json()
+    const scenarioData = payload?.data ?? payload
+    const scenesRelation = scenarioData?.attributes?.scenes ?? scenarioData?.scenes
+
+    let scenes = []
+    if (Array.isArray(scenesRelation?.data)) {
+      scenes = scenesRelation.data
+    } else if (Array.isArray(scenesRelation)) {
+      scenes = scenesRelation
+    }
+
+    return scenes
+      .map(normalizeScene)
+      .sort((a, b) => a.order_index - b.order_index)
+  } catch (error) {
+    console.error(`Failed to fetch scenes for scenario ${scenarioDocumentId}:`, error)
     throw error
   }
 }

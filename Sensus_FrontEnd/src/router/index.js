@@ -4,6 +4,7 @@ import UserInfo from '../views/UserInfo.vue'
 import ContentWarning from '../views/ContentWarning.vue'
 import ScenarioList from '../views/ScenarioList.vue'
 import ScenarioIntro from '../views/ScenarioIntro.vue'
+import ScenarioScene from '../views/ScenarioScene.vue'
 import SafeExit from '../views/SafeExit.vue'
 import ScenarioComplete from '../views/ScenarioComplete.vue'
 import Code from '../views/Code.vue'
@@ -21,7 +22,9 @@ const routes = [
   { path: '/content-warning', name: 'content-warning', component: ContentWarning },
   { path: '/code', name: 'code', component: Code },
   { path: '/scenario-lijst', name: 'scenario-lijst', component: ScenarioList },
-  { path: '/intro-scenario', name: 'intro-scenario', component: ScenarioIntro },
+  { path: '/intro-scenario/:documentId', name: 'intro-scenario', component: ScenarioIntro },
+  { path: '/intro-scenario', redirect: '/scenario-lijst' },
+  { path: '/scenario/:documentId/scenes/:sceneIndex', name: 'scenario-scene', component: ScenarioScene },
   { path: '/safe-exit', name: 'safe-exit', component: SafeExit },
   { path: '/einde', name: 'einde', component: ScenarioComplete },
   { path: '/faq', name: 'faq', component: FAQ },

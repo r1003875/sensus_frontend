@@ -26,10 +26,15 @@ const loadScenarios = async () => {
 }
 
 const startScenario = (scenario) => {
-  // Pass scenario data via route params or state
+  const scenarioDocumentId = scenario?.documentId
+  if (!scenarioDocumentId) {
+    error.value = 'Dit scenario mist een documentId en kan niet worden gestart.'
+    return
+  }
+
+  // Use path-based navigation to avoid stale named-route param mismatches.
   router.push({
-    name: 'intro-scenario',
-    params: { id: scenario.id },
+    path: `/intro-scenario/${encodeURIComponent(scenarioDocumentId)}`,
     state: { scenario }
   })
 }
@@ -58,7 +63,7 @@ onMounted(() => {
       <div v-else-if="scenarios.length" class="scenario-grid">
         <ScenarioCard
           v-for="s in scenarios"
-          :key="s.id"
+          :key="s.documentId"
           :title="s.title"
           :description="s.desc"
           :tag="s.tag"
