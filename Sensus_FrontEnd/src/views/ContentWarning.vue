@@ -12,6 +12,7 @@ const goNext = () => router.push('/scenario-lijst')
   <main class="app-screen">
     <TopNav backTo="/gegevens" />
     <section class="content-wrap">
+      <img src="../assets/icons/fi-rr-shield.svg" alt="Shield icon" class="warning-icon" />
       <h1>Voor je begint</h1>
       <p>Deze tool toont situaties die gaan over grenzen, communicatie en online gedrag. Sommige momenten kunnen gevoelig aanvoelen. Je kunt altijd stoppen.</p>
       <PrimaryButton text="Ik begrijp het" @click="goNext" />

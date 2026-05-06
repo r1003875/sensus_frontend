@@ -22,7 +22,7 @@ const goTerms = () => router.push({ path: '/gebruikersvoorwaarden', query: { bac
       <h2>Waarom moet ik mijn leeftijd en gender invullen?</h2>
       <p>We gebruiken deze informatie uitsluitend voor analytische doeleinden. Zo krijgen we een beter beeld van het gedrag van jongeren met betrekking tot consent.</p>
       <h2>Contact</h2>
-      <p>Neem contact met ons op via sensus-app@outlook.com</p>
+      <p>Neem contact met ons op via <a href="mailto:sensus-app@outlook.com">sensus-app@outlook.com</a></p>
       <p>
         <a href="#" @click.prevent="goPrivacy">privacybeleid</a> - <a href="#" @click.prevent="goTerms">gebruikersvoorwaarden</a>
       </p>
