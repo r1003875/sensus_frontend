@@ -46,10 +46,10 @@ const goNext = () => {
       <label>Gender<span class="required">*</span></label>
       <select v-model="gender" required :class="{ 'select--error': genderError }">
         <option value="" disabled selected>Selecteer je gender</option>
-        <option value="man">Man</option>
-        <option value="vrouw">Vrouw</option>
-        <option value="non-binair">Non-binair</option>
-        <option value="overige">Overige</option>
+        <option value="male">Man</option>
+        <option value="female">Vrouw</option>
+        <option value="non-binary">Non-binair</option>
+        <option value="other">Overige</option>
       </select>
       <div v-if="genderError" class="error-message">Selecteer je gender</div>
       <p>Door verder te gaan ga je akkoord dat deze gegevens worden gebruikt voor het analyseren van data. Je deelname blijft volledig anoniem.</p>
