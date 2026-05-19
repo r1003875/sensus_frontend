@@ -14,6 +14,8 @@ const router = useRouter()
 const scenes = ref([])
 const loading = ref(true)
 const error = ref(null)
+const choiceInputs = ref({})
+const choiceInputErrors = ref({})
 
 const scenarioDocumentId = computed(() => String(route.params.documentId || ''))
 const sceneIndex = computed(() => Number(route.params.sceneIndex || 1))
@@ -27,14 +29,13 @@ const currentScene = computed(() => {
   return scenes.value[index]
 })
 
-const isFinalScene = computed(() => {
-  if (!scenes.value.length) {
-    return false
+const currentSceneChoices = computed(() => {
+  if (!Array.isArray(currentScene.value?.choices)) {
+    return []
   }
-  return sceneIndex.value === scenes.value.length
-})
 
-const nextButtonText = computed(() => (isFinalScene.value ? 'Rond scenario af' : 'Volgende'))
+  return currentScene.value.choices
+})
 
 const resolveMediaUrl = (url) => {
   if (!url || typeof url !== 'string') {
@@ -49,6 +50,54 @@ const resolveMediaUrl = (url) => {
 }
 
 const mediaUrl = computed(() => resolveMediaUrl(currentScene.value?.content_media))
+
+const getChoiceKey = (choice, choiceIndex) => String(choice?.id ?? `${currentScene.value?.id ?? sceneIndex.value}-${choiceIndex}`)
+
+const navigateToSceneId = (targetSceneId) => {
+  const targetIndex = scenes.value.findIndex((scene) => String(scene.id) === String(targetSceneId))
+
+  if (targetIndex < 0) {
+    error.value = 'Kon de volgende scene niet vinden.'
+    return
+  }
+
+  router.push({
+    name: 'scenario-scene',
+    params: {
+      documentId: scenarioDocumentId.value,
+      sceneIndex: targetIndex + 1,
+    },
+  })
+}
+
+const handleChoice = (choice, choiceIndex) => {
+  const choiceKey = getChoiceKey(choice, choiceIndex)
+
+  if (choice?.input_field) {
+    const value = String(choiceInputs.value[choiceKey] ?? '').trim()
+
+    if (!value) {
+      choiceInputErrors.value[choiceKey] = 'Vul eerst een antwoord in om verder te gaan.'
+      return
+    }
+
+    choiceInputErrors.value[choiceKey] = ''
+  }
+
+  const nextSceneId = Array.isArray(choice?.to_scenes) ? choice.to_scenes[0] : null
+
+  if (nextSceneId != null && nextSceneId !== '') {
+    navigateToSceneId(nextSceneId)
+    return
+  }
+
+  if (currentScene.value?.reflection_scene) {
+    router.push('/einde')
+    return
+  }
+
+  error.value = 'Deze keuze heeft geen vervolgstap.'
+}
 
 const loadScenes = async () => {
   try {
@@ -74,28 +123,21 @@ const loadScenes = async () => {
   }
 }
 
-const goNext = () => {
-  if (isFinalScene.value) {
-    router.push('/einde')
-    return
-  }
-
-  router.push({
-    name: 'scenario-scene',
-    params: {
-      documentId: scenarioDocumentId.value,
-      sceneIndex: sceneIndex.value + 1,
-    },
-  })
-}
-
 watch(
   () => [route.params.documentId, route.params.sceneIndex],
-  async ([documentId]) => {
+  async ([documentId, currentSceneIndex]) => {
+    choiceInputErrors.value = {}
+
     if (!documentId) {
       router.push('/404')
       return
     }
+
+    if (Number.isNaN(Number(currentSceneIndex))) {
+      router.push('/404')
+      return
+    }
+
     await loadScenes()
   },
   { immediate: true }
@@ -134,13 +176,72 @@ onMounted(async () => {
           <p>{{ currentScene.question }}</p>
         </section>
 
-        <PrimaryButton :text="nextButtonText" @click="goNext" />
+        <section v-if="currentSceneChoices.length" class="scene-choices">
+          <div
+            v-for="(choice, choiceIndex) in currentSceneChoices"
+            :key="getChoiceKey(choice, choiceIndex)"
+            class="scene-choice"
+          >
+            <template v-if="choice.input_field">
+              <textarea
+                v-model="choiceInputs[getChoiceKey(choice, choiceIndex)]"
+                class="scene-choice-input"
+                rows="4"
+                placeholder="Typ hier je antwoord"
+              />
+              <p v-if="choiceInputErrors[getChoiceKey(choice, choiceIndex)]" class="choice-input-error">
+                {{ choiceInputErrors[getChoiceKey(choice, choiceIndex)] }}
+              </p>
+              <PrimaryButton text="Ga verder" @click="handleChoice(choice, choiceIndex)" />
+            </template>
+
+            <PrimaryButton
+              v-else
+              :text="choice.label || 'Ga verder'"
+              @click="handleChoice(choice, choiceIndex)"
+            />
+          </div>
+        </section>
       </template>
     </section>
   </main>
 </template>
 
 <style scoped>
+.scene-choices {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.scene-choice {
+  display: grid;
+  gap: 10px;
+}
+
+.scene-choice-input {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 12px;
+  background: var(--neutral-100);
+  color: inherit;
+  font: inherit;
+}
+
+.scene-choice-input:focus {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+.choice-input-error {
+  margin: 0;
+  color: var(--error-600);
+  font-size: 14px;
+}
+
 .scene-media {
   width: 100%;
   border-radius: 12px;

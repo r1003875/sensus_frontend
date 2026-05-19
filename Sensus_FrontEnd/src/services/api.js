@@ -21,6 +21,31 @@ const normalizeScene = (item) => {
   const mediaData = source?.content_media?.data ?? source?.content_media ?? null
   const mediaAttributes = mediaData?.attributes ?? mediaData ?? {}
 
+  const extractRelationItems = (relation) => {
+    if (Array.isArray(relation?.data)) {
+      return relation.data
+    }
+
+    if (Array.isArray(relation)) {
+      return relation
+    }
+
+    return []
+  }
+
+  const extractRelationId = (relation) => {
+    if (relation == null) {
+      return null
+    }
+
+    if (typeof relation === 'string' || typeof relation === 'number') {
+      return relation
+    }
+
+    const relationSource = relation?.attributes ?? relation ?? {}
+    return relation?.id ?? relationSource?.id ?? null
+  }
+
   const extractText = (value) => {
     if (typeof value === 'string') {
       return value
@@ -49,6 +74,22 @@ const normalizeScene = (item) => {
     return ''
   }
 
+  const normalizeChoice = (choice) => {
+    const choiceSource = choice?.attributes ?? choice ?? {}
+    const toScenes = extractRelationItems(choiceSource?.to_scenes).map(extractRelationId).filter((id) => id != null)
+
+    return {
+      id: choice?.id ?? choiceSource?.id ?? null,
+      label: typeof choiceSource?.label === 'string' ? choiceSource.label : null,
+      scene: extractRelationId(choiceSource?.scene?.data ?? choiceSource?.scene),
+      to_scenes: toScenes,
+      input_field: Boolean(choiceSource?.input_field),
+      raw: choice,
+    }
+  }
+
+  const choiceItems = extractRelationItems(source?.choices)
+
   return {
     id: item?.id ?? source?.id,
     order_index: Number(source?.order_index ?? 0),
@@ -56,6 +97,8 @@ const normalizeScene = (item) => {
     content_text: extractText(source?.content_text),
     content_media: mediaAttributes?.url ?? mediaAttributes?.formats?.medium?.url ?? mediaAttributes?.formats?.small?.url ?? source?.content_media ?? '',
     question: extractText(source?.question?.text ?? source?.question_text ?? source?.question),
+    reflection_scene: Boolean(source?.reflection_scene),
+    choices: choiceItems.map(normalizeChoice),
     raw: item,
   }
 }
@@ -124,7 +167,7 @@ export const fetchScenarioScenes = async (scenarioDocumentId) => {
 
   try {
     const response = await fetch(
-      `${API_BASE}/scenarios/${encodeURIComponent(scenarioDocumentId)}?populate[scenes][populate]=content_media`,
+      `${API_BASE}/scenarios/${encodeURIComponent(scenarioDocumentId)}?populate[scenes][populate][0]=content_media&populate[scenes][populate][choices][populate][0]=to_scenes`,
       {
         headers: {
           Authorization: `Bearer ${BEARER_TOKEN}`,
