@@ -1,21 +1,39 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
+import { useSessionStore } from '@/stores/sessionStore'
 
 const router = useRouter()
+const sessionStore = useSessionStore()
 
 const age = ref('')
 const gender = ref('')
 const ageError = ref(false)
 const genderError = ref(false)
 
+onMounted(() => {
+  age.value = sessionStore.userAge || ''
+  gender.value = sessionStore.userGender || ''
+})
+
+watch([age, gender], ([nextAge, nextGender]) => {
+  sessionStore.setUserProfile({
+    userAge: nextAge,
+    userGender: nextGender,
+  })
+})
+
 const goNext = () => {
   ageError.value = !age.value
   genderError.value = !gender.value
 
   if (!ageError.value && !genderError.value) {
+    sessionStore.setUserProfile({
+      userAge: age.value,
+      userGender: gender.value,
+    })
     router.push('/content-warning')
   }
 }

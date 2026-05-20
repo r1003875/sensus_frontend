@@ -4,12 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
 import { fetchScenarioScenes } from '@/services/api'
+import { useSessionStore } from '@/stores/sessionStore'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const CMS_ORIGIN = API_BASE.replace(/\/api\/?$/, '')
 
 const route = useRoute()
 const router = useRouter()
+const sessionStore = useSessionStore()
 
 const scenes = ref([])
 const loading = ref(true)
@@ -72,6 +74,7 @@ const navigateToSceneId = (targetSceneId) => {
 
 const handleChoice = (choice, choiceIndex) => {
   const choiceKey = getChoiceKey(choice, choiceIndex)
+  const sceneId = currentScene.value?.id
 
   if (choice?.input_field) {
     const value = String(choiceInputs.value[choiceKey] ?? '').trim()
@@ -82,9 +85,33 @@ const handleChoice = (choice, choiceIndex) => {
     }
 
     choiceInputErrors.value[choiceKey] = ''
+
+    const stored = sessionStore.addAnswer({
+      sceneId,
+      answerType: 'text',
+      answerValue: value,
+    })
+
+    if (!stored) {
+      error.value = 'Kon het antwoord niet opslaan.'
+      return
+    }
   }
 
   const nextSceneId = Array.isArray(choice?.to_scenes) ? choice.to_scenes[0] : null
+
+  if (!choice?.input_field) {
+    const stored = sessionStore.addAnswer({
+      sceneId,
+      answerType: 'choice',
+      answerValue: choice?.label || 'Ga verder',
+    })
+
+    if (!stored) {
+      error.value = 'Kon de keuze niet opslaan.'
+      return
+    }
+  }
 
   if (nextSceneId != null && nextSceneId !== '') {
     navigateToSceneId(nextSceneId)
