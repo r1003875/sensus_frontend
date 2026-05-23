@@ -3,49 +3,74 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
+import { useAuthCode } from '@/composables/useAuthCode'
 
 const router = useRouter()
+const { validateAuthCode } = useAuthCode()
 const code = ref(['', '', '', '', '', ''])
-const showError = ref(false)
+const errorMessage = ref('')
+const isSubmitting = ref(false)
+
+const focusInput = (index) => {
+  const nextInput = document.querySelector(`input[data-index="${index}"]`)
+  if (nextInput) {
+    nextInput.focus()
+  }
+}
+
+const normalizeDigit = (value) => String(value ?? '').replace(/\D/g, '').slice(0, 1)
 
 const handleInput = (index, event) => {
-  const value = event.target.value
-  if (value.length <= 1) {
-    code.value[index] = value.toUpperCase()
-    showError.value = false
-    // Move to next input if value entered
-    if (value && index < 5) {
-      const nextInput = document.querySelector(`input[data-index="${index + 1}"]`)
-      if (nextInput) nextInput.focus()
-    }
-  } else {
-    event.target.value = code.value[index]
+  const digit = normalizeDigit(event.target.value)
+  code.value[index] = digit
+  errorMessage.value = ''
+
+  if (digit && index < 5) {
+    focusInput(index + 1)
   }
+
+  event.target.value = digit
 }
 
 const handleKeyDown = (index, event) => {
   if (event.key === 'Backspace' && !code.value[index] && index > 0) {
-    const prevInput = document.querySelector(`input[data-index="${index - 1}"]`)
-    if (prevInput) prevInput.focus()
+    focusInput(index - 1)
   } else if (event.key === 'ArrowLeft' && index > 0) {
-    const prevInput = document.querySelector(`input[data-index="${index - 1}"]`)
-    if (prevInput) prevInput.focus()
+    focusInput(index - 1)
   } else if (event.key === 'ArrowRight' && index < 5) {
-    const nextInput = document.querySelector(`input[data-index="${index + 1}"]`)
-    if (nextInput) nextInput.focus()
+    focusInput(index + 1)
   }
 }
 
-const startSession = () => {
-  const fullCode = code.value.join('')
-  if (fullCode.length === 0) {
-    showError.value = true
+const startSession = async () => {
+  if (isSubmitting.value) {
     return
   }
-  if (fullCode.length === 6) {
-    // TODO: Validate code and start session
-    showError.value = false
-    router.push('/gegevens')
+
+  const fullCode = code.value.join('')
+
+  if (!/^\d{6}$/.test(fullCode)) {
+    errorMessage.value = 'Voer een geldige 6-cijferige code in.'
+    return
+  }
+
+  isSubmitting.value = true
+  errorMessage.value = ''
+
+  try {
+    const result = await validateAuthCode(fullCode)
+
+    if (!result.valid) {
+      errorMessage.value = result.message
+      return
+    }
+
+    await router.push('/scenario-lijst')
+  } catch (error) {
+    console.error('Kon de toegangscode niet valideren.', error)
+    errorMessage.value = 'Kon de code niet controleren. Probeer het opnieuw.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
@@ -62,19 +87,20 @@ const startSession = () => {
         <input
           v-for="(digit, index) in code"
           :key="index"
-          v-model="code[index]"
+          :value="digit"
           :data-index="index"
           type="text"
-          inputmode="uppercase"
+          inputmode="numeric"
+          autocomplete="one-time-code"
           maxlength="1"
           class="code-box"
-          :class="{ 'code-box--error': showError }"
+          :class="{ 'code-box--error': errorMessage }"
           @input="handleInput(index, $event)"
           @keydown="handleKeyDown(index, $event)"
         />
       </div>
-      <div v-if="showError" class="error-message">Voer een sessiecode in</div>
-      <PrimaryButton text="Start" @click="startSession" />
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <PrimaryButton :text="isSubmitting ? 'Controleren...' : 'Start'" @click="startSession" />
     </section>
   </main>
 </template>
