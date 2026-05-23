@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { sessionStorageHelper } from '@/lib/sessionStorage'
 
 const STORAGE_KEY = 'sensus-session-store'
 
@@ -29,7 +30,7 @@ const loadPersistedState = () => {
   }
 
   try {
-    const rawState = window.localStorage.getItem(STORAGE_KEY)
+    const rawState = sessionStorageHelper.readStorageValue(window.sessionStorage, STORAGE_KEY)
     if (!rawState) {
       return createInitialState()
     }
@@ -62,7 +63,7 @@ const persistState = () => {
   }
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cloneState(sessionState)))
+    sessionStorageHelper.writeStorageValue(window.sessionStorage, STORAGE_KEY, JSON.stringify(cloneState(sessionState)))
   } catch (error) {
     console.error('Kon de sessiestatus niet opslaan.', error)
   }

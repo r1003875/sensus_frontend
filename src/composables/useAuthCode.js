@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
+import { sessionStorageHelper } from '@/lib/sessionStorage'
 
-const AUTH_SESSION_KEY = 'sensus_session'
+const AUTH_SESSION_KEY = 'sensus-session'
 const AUTH_SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000
 const isBrowser = typeof window !== 'undefined'
 
@@ -32,7 +33,7 @@ const readAuthSession = () => {
     return null
   }
 
-  return parseSession(window.localStorage.getItem(AUTH_SESSION_KEY))
+  return parseSession(sessionStorageHelper.readStorageValue(window.sessionStorage, AUTH_SESSION_KEY))
 }
 
 const isSessionExpired = (session) => {
@@ -58,7 +59,7 @@ const saveAuthSession = ({ code, timestamp }) => {
     return
   }
 
-  window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ code, timestamp }))
+  sessionStorageHelper.writeStorageValue(window.sessionStorage, AUTH_SESSION_KEY, JSON.stringify({ code, timestamp }))
 }
 
 const clearAuthSession = () => {
@@ -66,7 +67,7 @@ const clearAuthSession = () => {
     return
   }
 
-  window.localStorage.removeItem(AUTH_SESSION_KEY)
+  sessionStorageHelper.removeStorageValue(window.sessionStorage, AUTH_SESSION_KEY)
 }
 
 const validateAuthCode = async (inputCode) => {

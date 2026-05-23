@@ -65,7 +65,7 @@ const startSession = async () => {
       return
     }
 
-    await router.push('/scenario-lijst')
+    await router.push('/gegevens')
   } catch (error) {
     console.error('Kon de toegangscode niet valideren.', error)
     errorMessage.value = 'Kon de code niet controleren. Probeer het opnieuw.'
