@@ -1,6 +1,14 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const BEARER_TOKEN = import.meta.env.VITE_API_BEARER_TOKEN || ''
 
+const buildScenarioScenesQuery = () => {
+  const params = new URLSearchParams()
+  params.set('populate[scenes][populate][content_media]', 'true')
+  params.set('populate[scenes][populate][choices][populate][to_scenes]', 'true')
+
+  return params.toString()
+}
+
 const normalizeScenario = (item) => {
   const source = item?.attributes ?? item ?? {}
 
@@ -18,8 +26,6 @@ const normalizeScenario = (item) => {
 
 const normalizeScene = (item) => {
   const source = item?.attributes ?? item ?? {}
-  const mediaData = source?.content_media?.data ?? source?.content_media ?? null
-  const mediaAttributes = mediaData?.attributes ?? mediaData ?? {}
 
   const extractRelationItems = (relation) => {
     if (Array.isArray(relation?.data)) {
@@ -95,7 +101,7 @@ const normalizeScene = (item) => {
     order_index: Number(source?.order_index ?? 0),
     title: extractText(source?.title),
     content_text: extractText(source?.content_text),
-    content_media: mediaAttributes?.url ?? mediaAttributes?.formats?.medium?.url ?? mediaAttributes?.formats?.small?.url ?? source?.content_media ?? '',
+    content_media: source?.content_media?.data ?? source?.content_media ?? null,
     question: extractText(source?.question?.text ?? source?.question_text ?? source?.question),
     reflection_scene: Boolean(source?.reflection_scene),
     choices: choiceItems.map(normalizeChoice),
@@ -166,8 +172,9 @@ export const fetchScenarioScenes = async (scenarioDocumentId) => {
   }
 
   try {
+    const query = buildScenarioScenesQuery()
     const response = await fetch(
-      `${API_BASE}/scenarios/${encodeURIComponent(scenarioDocumentId)}?populate[scenes][populate][0]=content_media&populate[scenes][populate][choices][populate][0]=to_scenes`,
+      `${API_BASE}/scenarios/${encodeURIComponent(scenarioDocumentId)}?${query}`,
       {
         headers: {
           Authorization: `Bearer ${BEARER_TOKEN}`,

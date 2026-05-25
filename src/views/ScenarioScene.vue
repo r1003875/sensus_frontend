@@ -51,7 +51,21 @@ const resolveMediaUrl = (url) => {
   return `${CMS_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`
 }
 
-const mediaUrl = computed(() => resolveMediaUrl(currentScene.value?.content_media))
+const mediaUrl = computed(() => {
+  const media = currentScene.value?.content_media
+
+  if (!media) {
+    return ''
+  }
+
+  if (typeof media === 'string') {
+    return resolveMediaUrl(media)
+  }
+
+  const mediaUrlValue = media?.url ?? media?.data?.attributes?.url ?? ''
+
+  return resolveMediaUrl(mediaUrlValue)
+})
 
 const getChoiceKey = (choice, choiceIndex) => String(choice?.id ?? `${currentScene.value?.id ?? sceneIndex.value}-${choiceIndex}`)
 
