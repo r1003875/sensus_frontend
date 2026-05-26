@@ -205,6 +205,10 @@ const handleChoice = (choice, choiceIndex) => {
       return
     }
 
+    if (currentScene.value?.reflection_scene) {
+      router.push('/einde')
+    }
+
     return
   }
 
