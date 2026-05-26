@@ -3,7 +3,7 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
-import { fetchScenarioScenes } from '@/services/api'
+import { fetchScenario, fetchScenarioScenes } from '@/services/api'
 import { useSessionStore } from '@/stores/sessionStore'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
@@ -14,13 +14,18 @@ const router = useRouter()
 const sessionStore = useSessionStore()
 
 const scenes = ref([])
+const scenario = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const choiceInputs = ref({})
 const choiceInputErrors = ref({})
+const routingLoading = ref(false)
 
 const scenarioDocumentId = computed(() => String(route.params.documentId || ''))
 const sceneIndex = computed(() => Number(route.params.sceneIndex || 1))
+const scenarioTitle = computed(() => String(scenario.value?.title || ''))
+
+const getSceneById = (sceneId) => scenes.value.find((scene) => String(scene.documentId ?? scene.id) === String(sceneId)) ?? null
 
 const currentScene = computed(() => {
   const index = sceneIndex.value - 1
@@ -38,6 +43,30 @@ const currentSceneChoices = computed(() => {
 
   return currentScene.value.choices
 })
+
+const getChoiceInputValue = (choice, choiceIndex) => String(choiceInputs.value[getChoiceKey(choice, choiceIndex)] ?? '')
+
+const getChoiceTargets = (choice) => {
+  if (!Array.isArray(choice?.to_scenes)) {
+    return []
+  }
+
+  return choice.to_scenes
+    .map((targetSceneId, targetIndex) => {
+      const targetScene = getSceneById(targetSceneId)
+
+      return {
+        id: targetIndex + 1,
+        sceneId: targetSceneId,
+        label: targetScene?.title || `Scene ${targetIndex + 1}`,
+      }
+    })
+    .filter((choiceItem) => choiceItem.sceneId != null && choiceItem.sceneId !== '')
+}
+
+const hasMultipleTargets = (choice) => getChoiceTargets(choice).length > 1
+
+const shouldShowAnswerBox = (choice) => Boolean(choice?.input_field) || hasMultipleTargets(choice)
 
 const resolveMediaUrl = (url) => {
   if (!url || typeof url !== 'string') {
@@ -70,7 +99,7 @@ const mediaUrl = computed(() => {
 const getChoiceKey = (choice, choiceIndex) => String(choice?.id ?? `${currentScene.value?.id ?? sceneIndex.value}-${choiceIndex}`)
 
 const navigateToSceneId = (targetSceneId) => {
-  const targetIndex = scenes.value.findIndex((scene) => String(scene.id) === String(targetSceneId))
+  const targetIndex = scenes.value.findIndex((scene) => String(scene.documentId ?? scene.id) === String(targetSceneId))
 
   if (targetIndex < 0) {
     error.value = 'Kon de volgende scene niet vinden.'
@@ -86,45 +115,122 @@ const navigateToSceneId = (targetSceneId) => {
   })
 }
 
+const saveCurrentAnswer = (sceneId, answerType, answerValue) => {
+  const stored = sessionStore.addAnswer({
+    sceneId,
+    answerType,
+    answerValue,
+  })
+
+  if (!stored) {
+    error.value = 'Kon het antwoord niet opslaan.'
+    return false
+  }
+
+  return true
+}
+
+const routeViaAi = async ({ choice, userInput }) => {
+  const targets = getChoiceTargets(choice)
+
+  if (!targets.length) {
+    error.value = 'Deze keuze heeft geen vervolgstap.'
+    return
+  }
+
+  const sceneId = currentScene.value?.id
+  const stored = saveCurrentAnswer(sceneId, 'text', userInput)
+
+  if (!stored) {
+    return
+  }
+
+  const requestBody = {
+    userInput,
+    question: String(currentScene.value?.question || ''),
+    context: scenarioTitle.value,
+    choices: targets.map(({ id, label }) => ({ id, label })),
+  }
+
+  routingLoading.value = true
+
+  try {
+    const response = await fetch('https://sensus-cms.onrender.com/api/route', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      throw new Error(`AI routing API error: ${response.status}`)
+    }
+
+    const payload = await response.json()
+    const selectedChoiceId = Number(payload?.choice_id)
+    const selectedTarget = targets.find((target) => target.id === selectedChoiceId) ?? targets[0]
+
+    if (!payload?.success || !selectedTarget) {
+      throw new Error('AI routing response was not usable.')
+    }
+
+    navigateToSceneId(selectedTarget.sceneId)
+  } catch (routeError) {
+    console.error('AI routing failed, falling back to the first scene.', routeError)
+    navigateToSceneId(targets[0].sceneId)
+  } finally {
+    routingLoading.value = false
+  }
+}
+
 const handleChoice = (choice, choiceIndex) => {
   const choiceKey = getChoiceKey(choice, choiceIndex)
   const sceneId = currentScene.value?.id
+  const targets = getChoiceTargets(choice)
+  const typedAnswer = getChoiceInputValue(choice, choiceIndex).trim()
 
-  if (choice?.input_field) {
-    const value = String(choiceInputs.value[choiceKey] ?? '').trim()
+  if (!targets.length) {
+    if (choice?.input_field && !typedAnswer) {
+      choiceInputErrors.value[choiceKey] = 'Vul eerst een antwoord in om verder te gaan.'
+      return
+    }
 
-    if (!value) {
+    const stored = choice?.input_field
+      ? saveCurrentAnswer(sceneId, 'text', typedAnswer)
+      : saveCurrentAnswer(sceneId, 'choice', choice?.label || 'Ga verder')
+
+    if (!stored) {
+      return
+    }
+
+    return
+  }
+
+  if (targets.length > 1) {
+    if (!typedAnswer) {
       choiceInputErrors.value[choiceKey] = 'Vul eerst een antwoord in om verder te gaan.'
       return
     }
 
     choiceInputErrors.value[choiceKey] = ''
-
-    const stored = sessionStore.addAnswer({
-      sceneId,
-      answerType: 'text',
-      answerValue: value,
-    })
-
-    if (!stored) {
-      error.value = 'Kon het antwoord niet opslaan.'
-      return
-    }
+    routeViaAi({ choice, userInput: typedAnswer })
+    return
   }
 
-  const nextSceneId = Array.isArray(choice?.to_scenes) ? choice.to_scenes[0] : null
+  const nextSceneId = targets[0]?.sceneId ?? null
+  if (choice?.input_field && !typedAnswer) {
+    choiceInputErrors.value[choiceKey] = 'Vul eerst een antwoord in om verder te gaan.'
+    return
+  }
 
-  if (!choice?.input_field) {
-    const stored = sessionStore.addAnswer({
-      sceneId,
-      answerType: 'choice',
-      answerValue: choice?.label || 'Ga verder',
-    })
+  const stored = choice?.input_field
+    ? saveCurrentAnswer(sceneId, 'text', typedAnswer)
+    : saveCurrentAnswer(sceneId, 'choice', choice?.label || 'Ga verder')
 
-    if (!stored) {
-      error.value = 'Kon de keuze niet opslaan.'
-      return
-    }
+  if (!stored) {
+    return
   }
 
   if (nextSceneId != null && nextSceneId !== '') {
@@ -132,8 +238,7 @@ const handleChoice = (choice, choiceIndex) => {
     return
   }
 
-  if (currentScene.value?.reflection_scene) {
-    router.push('/einde')
+  if (choice?.input_field || currentScene.value?.reflection_scene) {
     return
   }
 
@@ -145,10 +250,15 @@ const loadScenes = async () => {
     loading.value = true
     error.value = null
 
-    const data = await fetchScenarioScenes(scenarioDocumentId.value)
-    scenes.value = data
+    const [scenarioData, sceneData] = await Promise.all([
+      fetchScenario(scenarioDocumentId.value),
+      fetchScenarioScenes(scenarioDocumentId.value),
+    ])
 
-    if (!data.length) {
+    scenario.value = scenarioData
+    scenes.value = sceneData
+
+    if (!sceneData.length) {
       error.value = 'Geen scenes gevonden voor dit scenario.'
       return
     }
@@ -223,17 +333,25 @@ onMounted(async () => {
             :key="getChoiceKey(choice, choiceIndex)"
             class="scene-choice"
           >
-            <template v-if="choice.input_field">
+            <template v-if="shouldShowAnswerBox(choice)">
               <textarea
                 v-model="choiceInputs[getChoiceKey(choice, choiceIndex)]"
                 class="scene-choice-input"
                 rows="4"
                 placeholder="Typ hier je antwoord"
+                :disabled="routingLoading"
               />
               <p v-if="choiceInputErrors[getChoiceKey(choice, choiceIndex)]" class="choice-input-error">
                 {{ choiceInputErrors[getChoiceKey(choice, choiceIndex)] }}
               </p>
-              <PrimaryButton text="Ga verder" @click="handleChoice(choice, choiceIndex)" />
+              <button
+                type="button"
+                class="primary-btn scene-choice-action"
+                :disabled="routingLoading || !getChoiceInputValue(choice, choiceIndex).trim()"
+                @click="handleChoice(choice, choiceIndex)"
+              >
+                {{ routingLoading ? 'Bezig...' : 'Ga verder' }}
+              </button>
             </template>
 
             <PrimaryButton
@@ -275,6 +393,16 @@ onMounted(async () => {
 .scene-choice-input:focus {
   outline: 2px solid var(--primary-500);
   outline-offset: 2px;
+}
+
+.scene-choice-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.scene-choice-action:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .choice-input-error {
