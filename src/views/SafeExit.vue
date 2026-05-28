@@ -14,6 +14,7 @@ const stop = () => router.push('/scenario-lijst')
   <main class="app-screen">
     <TopNav backTo="/intro-scenario" />
     <section class="content-wrap">
+      <img src="../assets/icons/fi-rr-pause.svg" alt="Pause icon" class="warning-icon" />
       <h1>Even pauze?</h1>
       <p>Je hoeft niet verder te gaan als het niet goed voelt. Neem een moment voor jezelf. Je kan altijd later opnieuw starten.</p>
       <small>Er wordt niets opgeslagen.</small>
