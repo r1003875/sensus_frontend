@@ -115,6 +115,20 @@ const navigateToSceneId = (targetSceneId) => {
   })
 }
 
+const pauseScenario = async () => {
+  const paused = sessionStore.pauseScenario({
+    scenarioId: scenarioDocumentId.value,
+    sceneIndex: sceneIndex.value,
+  })
+
+  if (!paused) {
+    error.value = 'Kon je voortgang niet bewaren om te pauzeren.'
+    return
+  }
+
+  await router.push({ name: 'safe-exit' })
+}
+
 const saveCurrentAnswer = (sceneId, answerType, answerValue) => {
   const stored = sessionStore.addAnswer({
     sceneId,
@@ -298,6 +312,21 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => [scenarioDocumentId.value, sceneIndex.value, currentScene.value?.id],
+  () => {
+    if (!currentScene.value) {
+      return
+    }
+
+    sessionStore.setScenarioProgress({
+      scenarioId: scenarioDocumentId.value,
+      sceneIndex: sceneIndex.value,
+    })
+  },
+  { immediate: true }
+)
+
 onMounted(async () => {
   if (!scenarioDocumentId.value) {
     router.push('/404')
@@ -365,6 +394,11 @@ onMounted(async () => {
             />
           </div>
         </section>
+
+        <button type="button" class="secondary-btn scene-pause-btn" @click="pauseScenario">
+          <span>Pauzeer scenario</span>
+          <img src="../assets/icons/fi-rr-pause-blue.svg" alt="" class="scene-pause-icon" aria-hidden="true" />
+        </button>
       </template>
     </section>
   </main>
@@ -435,5 +469,19 @@ onMounted(async () => {
 
 .error-message {
   color: var(--error-600);
+}
+
+.scene-pause-btn {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--blue-300);
+}
+
+.scene-pause-icon {
+  width: 18px;
+  height: 18px;
 }
 </style>

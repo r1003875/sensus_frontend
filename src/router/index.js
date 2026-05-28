@@ -16,6 +16,7 @@ import Offline from '../views/ErrorStates/Offline.vue'
 import NotFound from '../views/ErrorStates/NotFound.vue'
 import ServerError from '../views/ErrorStates/ServerError.vue'
 import { useAuthCode } from '@/composables/useAuthCode'
+import { useSessionStore } from '@/stores/sessionStore'
 
 const routes = [
   { path: '/', name: 'start', component: Start, meta: { publicRoute: true } },
@@ -44,6 +45,7 @@ const router = createRouter({
 })
 
 const { hasValidAuthSession, clearAuthSession } = useAuthCode()
+const sessionStore = useSessionStore()
 
 router.beforeEach((to) => {
   const isPublicRoute = to.matched.some((record) => record.meta.publicRoute)
@@ -55,6 +57,10 @@ router.beforeEach((to) => {
   if (!hasValidAuthSession()) {
     clearAuthSession()
     return { name: 'code' }
+  }
+
+  if (to.name === 'safe-exit' && !sessionStore.getResumeRoute()) {
+    return { name: 'scenario-lijst' }
   }
 
   return true

@@ -11,6 +11,10 @@ const createInitialState = () => ({
   userAge: '',
   answers: [],
   currentScenarioId: '',
+  currentSceneIndex: null,
+  pausedScenarioId: '',
+  pausedSceneIndex: null,
+  pausedAt: null,
 })
 
 const isBrowser = typeof window !== 'undefined'
@@ -22,6 +26,10 @@ const cloneState = (state) => ({
   userAge: state.userAge,
   answers: Array.isArray(state.answers) ? state.answers.map((answer) => ({ ...answer })) : [],
   currentScenarioId: state.currentScenarioId,
+  currentSceneIndex: state.currentSceneIndex,
+  pausedScenarioId: state.pausedScenarioId,
+  pausedSceneIndex: state.pausedSceneIndex,
+  pausedAt: state.pausedAt,
 })
 
 const loadPersistedState = () => {
@@ -45,6 +53,14 @@ const loadPersistedState = () => {
       userAge: parsedState?.userAge ?? '',
       answers: Array.isArray(parsedState?.answers) ? parsedState.answers : [],
       currentScenarioId: parsedState?.currentScenarioId ?? '',
+      currentSceneIndex: Number.isFinite(Number(parsedState?.currentSceneIndex))
+        ? Number(parsedState.currentSceneIndex)
+        : null,
+      pausedScenarioId: parsedState?.pausedScenarioId ?? '',
+      pausedSceneIndex: Number.isFinite(Number(parsedState?.pausedSceneIndex))
+        ? Number(parsedState.pausedSceneIndex)
+        : null,
+      pausedAt: parsedState?.pausedAt ?? null,
     }
   } catch (error) {
     console.error('Kon de sessiestatus niet herstellen.', error)
@@ -56,6 +72,7 @@ const sessionState = reactive(loadPersistedState())
 
 let startSessionPromise = null
 let completeSessionPromise = null
+let discardSessionPromise = null
 
 const persistState = () => {
   if (!isBrowser) {
@@ -74,7 +91,90 @@ const clearActiveSessionState = () => {
   sessionState.sessionStart = null
   sessionState.answers = []
   sessionState.currentScenarioId = ''
+  sessionState.currentSceneIndex = null
+  sessionState.pausedScenarioId = ''
+  sessionState.pausedSceneIndex = null
+  sessionState.pausedAt = null
   persistState()
+}
+
+const removePersistedState = () => {
+  if (!isBrowser) {
+    return
+  }
+
+  try {
+    sessionStorageHelper.removeStorageValue(window.sessionStorage, STORAGE_KEY)
+  } catch (error) {
+    console.error('Kon de opgeslagen sessiestatus niet verwijderen.', error)
+  }
+}
+
+const resetStoreState = () => {
+  const initialState = createInitialState()
+
+  sessionState.sessionId = initialState.sessionId
+  sessionState.sessionStart = initialState.sessionStart
+  sessionState.userGender = initialState.userGender
+  sessionState.userAge = initialState.userAge
+  sessionState.answers = initialState.answers
+  sessionState.currentScenarioId = initialState.currentScenarioId
+  sessionState.currentSceneIndex = initialState.currentSceneIndex
+  sessionState.pausedScenarioId = initialState.pausedScenarioId
+  sessionState.pausedSceneIndex = initialState.pausedSceneIndex
+  sessionState.pausedAt = initialState.pausedAt
+}
+
+const setScenarioProgress = ({ scenarioId, sceneIndex } = {}) => {
+  const normalizedScenarioId = String(scenarioId ?? '')
+  const normalizedSceneIndex = Number(sceneIndex)
+
+  if (!normalizedScenarioId || !Number.isFinite(normalizedSceneIndex) || normalizedSceneIndex < 1) {
+    return
+  }
+
+  sessionState.currentScenarioId = normalizedScenarioId
+  sessionState.currentSceneIndex = normalizedSceneIndex
+  persistState()
+}
+
+const pauseScenario = ({ scenarioId, sceneIndex } = {}) => {
+  setScenarioProgress({ scenarioId, sceneIndex })
+
+  if (!sessionState.currentScenarioId || !sessionState.currentSceneIndex) {
+    return false
+  }
+
+  sessionState.pausedScenarioId = sessionState.currentScenarioId
+  sessionState.pausedSceneIndex = sessionState.currentSceneIndex
+  sessionState.pausedAt = new Date().toISOString()
+  persistState()
+
+  return true
+}
+
+const clearPausedState = () => {
+  sessionState.pausedScenarioId = ''
+  sessionState.pausedSceneIndex = null
+  sessionState.pausedAt = null
+  persistState()
+}
+
+const getResumeRoute = () => {
+  const scenarioId = String(sessionState.pausedScenarioId || sessionState.currentScenarioId || '')
+  const sceneIndex = Number(sessionState.pausedSceneIndex ?? sessionState.currentSceneIndex)
+
+  if (!scenarioId || !Number.isFinite(sceneIndex) || sceneIndex < 1) {
+    return null
+  }
+
+  return {
+    name: 'scenario-scene',
+    params: {
+      documentId: scenarioId,
+      sceneIndex,
+    },
+  }
 }
 
 const setUserProfile = ({ userAge = '', userGender = '' } = {}) => {
@@ -118,6 +218,10 @@ const startSession = async ({ scenarioId } = {}) => {
     sessionState.sessionId = data.id
     sessionState.sessionStart = sessionStart
     sessionState.currentScenarioId = String(scenarioId ?? '')
+    sessionState.currentSceneIndex = 1
+    sessionState.pausedScenarioId = ''
+    sessionState.pausedSceneIndex = null
+    sessionState.pausedAt = null
     sessionState.answers = []
     persistState()
 
@@ -222,9 +326,46 @@ const completeSession = async () => {
   }
 }
 
+const discardSession = async () => {
+  if (discardSessionPromise) {
+    return discardSessionPromise
+  }
+
+  discardSessionPromise = (async () => {
+    if (sessionState.sessionId) {
+      const { error: deleteSessionError } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('id', sessionState.sessionId)
+
+      if (deleteSessionError) {
+        throw deleteSessionError
+      }
+    }
+
+    resetStoreState()
+    removePersistedState()
+    return true
+  })()
+
+  try {
+    return await discardSessionPromise
+  } catch (error) {
+    console.error('Kon de sessie niet stoppen.', error)
+    throw error
+  } finally {
+    discardSessionPromise = null
+  }
+}
+
 sessionState.setUserProfile = setUserProfile
 sessionState.startSession = startSession
 sessionState.addAnswer = addAnswer
 sessionState.completeSession = completeSession
+sessionState.setScenarioProgress = setScenarioProgress
+sessionState.pauseScenario = pauseScenario
+sessionState.clearPausedState = clearPausedState
+sessionState.getResumeRoute = getResumeRoute
+sessionState.discardSession = discardSession
 
 export const useSessionStore = () => sessionState
