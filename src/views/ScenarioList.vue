@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import ScenarioCard from '@/components/ScenarioCard.vue'
+import PrimaryButton from '@/components/PrimaryButton.vue'
 import { fetchScenarios } from '@/services/api'
 
 const router = useRouter()
@@ -57,7 +58,7 @@ onMounted(() => {
 
       <div v-else-if="error" class="error-message">
         <p>{{ error }}</p>
-        <button class="primary-btn" @click="loadScenarios">Probeer opnieuw</button>
+        <PrimaryButton class="scenario-list-retry-btn" text="Probeer opnieuw" @click="loadScenarios" />
       </div>
 
       <div v-else-if="scenarios.length" class="scenario-grid">
@@ -90,7 +91,7 @@ onMounted(() => {
   color: #ba1414;
 }
 
-.error-message button {
+.scenario-list-retry-btn {
   margin-top: 12px;
 }
 </style>

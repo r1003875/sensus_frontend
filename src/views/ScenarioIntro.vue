@@ -41,8 +41,6 @@ const startScenario = async () => {
   }
 }
 
-const pauseScenario = () => router.push('/safe-exit')
-
 onMounted(async () => {
   const scenarioDocumentId = route.params.documentId
   if (!scenarioDocumentId || scenario.value?.documentId) {
@@ -67,7 +65,6 @@ onMounted(async () => {
       <p v-if="startError" class="error-message">{{ startError }}</p>
       <PrimaryButton text="Start" @click="startScenario" />
       <small>Dit scenario duurt ongeveer {{ scenario.duration || '2-3 minuten' }}.</small>
-      <SecondaryButton text="Pauzeer scenario" @click="pauseScenario" />
     </section>
   </main>
 </template>

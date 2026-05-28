@@ -1,11 +1,32 @@
 <script setup>
+import BaseButton from '@/components/BaseButton.vue'
+
+defineOptions({
+  inheritAttrs: false,
+})
+
 defineProps({
-  text: String,
+  text: {
+    type: String,
+    default: '',
+  },
 })
 
 defineEmits(['click'])
 </script>
 
 <template>
-  <button class="primary-btn" @click="$emit('click')">{{ text }}</button>
+  <BaseButton
+    variant="primary"
+    :text="text"
+    v-bind="$attrs"
+    @click="$emit('click', $event)"
+  >
+    <template v-if="$slots['icon-left']" #icon-left>
+      <slot name="icon-left" />
+    </template>
+    <template v-if="$slots['icon-right']" #icon-right>
+      <slot name="icon-right" />
+    </template>
+  </BaseButton>
 </template>

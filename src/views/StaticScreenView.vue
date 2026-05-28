@@ -1,6 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import BaseButton from '@/components/BaseButton.vue'
+import PrimaryButton from '@/components/PrimaryButton.vue'
+import SecondaryButton from '@/components/SecondaryButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,8 +25,8 @@ const go = (path) => router.push(path)
 <template>
   <main class="app-screen" :class="{ 'app-screen--center': isCenterMessage }">
     <header v-if="screen !== 'start'" class="top-nav">
-      <button class="link-btn" @click="go('/')">Terug</button>
-      <button class="icon-btn" @click="go('/faq')">?</button>
+      <BaseButton variant="link" :full-width="false" @click="go('/')">Terug</BaseButton>
+      <BaseButton variant="icon" :full-width="false" aria-label="FAQ" @click="go('/faq')">?</BaseButton>
     </header>
 
     <section v-if="screen === 'start'" class="start-screen">
@@ -32,7 +35,7 @@ const go = (path) => router.push(path)
       </div>
       <h1>Oefen met grenzen en consent</h1>
       <p>Ontdek realistische situaties en leer hoe jij op een veilige, respectvolle manier kan reageren.</p>
-      <button class="primary-btn" @click="go('/gegevens')">Start</button>
+      <PrimaryButton text="Start" @click="go('/gegevens')" />
     </section>
 
     <section v-else-if="screen === 'gegevens'" class="content-wrap">
@@ -44,13 +47,13 @@ const go = (path) => router.push(path)
       <label>Gender*</label>
       <select><option>Selecteer je gender</option></select>
       <p>Door verder te gaan ga je akkoord dat deze gegevens worden gebruikt voor het analyseren van data. Je deelname blijft volledig anoniem.</p>
-      <button class="primary-btn" @click="go('/content-warning')">Ga verder</button>
+      <PrimaryButton text="Ga verder" @click="go('/content-warning')" />
     </section>
 
     <section v-else-if="screen === 'content-warning'" class="content-wrap">
       <h1>Voor je begint</h1>
       <p>Deze tool toont situaties die gaan over grenzen, communicatie en online gedrag. Sommige momenten kunnen gevoelig aanvoelen. Je kunt altijd stoppen.</p>
-      <button class="primary-btn" @click="go('/scenario-lijst')">Ik begrijp het</button>
+      <PrimaryButton text="Ik begrijp het" @click="go('/scenario-lijst')" />
     </section>
 
     <section v-else-if="screen === 'scenario-lijst'" class="content-wrap content-wrap--wide">
@@ -61,7 +64,7 @@ const go = (path) => router.push(path)
           <h2>{{ s.title }}</h2>
           <p>{{ s.desc }}</p>
           <small>{{ s.tag }}</small>
-          <button class="primary-btn" @click="go('/intro-scenario')">Start</button>
+          <PrimaryButton text="Start" @click="go('/intro-scenario')" />
         </article>
       </div>
     </section>
@@ -69,17 +72,17 @@ const go = (path) => router.push(path)
     <section v-else-if="screen === 'intro-scenario'" class="content-wrap">
       <h1>Online gesprek loopt vast</h1>
       <p>Je stuurt je crush berichten. Het gesprek komt maar moeilijk op gang.</p>
-      <button class="primary-btn" @click="go('/safe-exit')">Start</button>
+      <PrimaryButton text="Start" @click="go('/safe-exit')" />
       <small>Dit scenario duurt ongeveer 2-3 minuten.</small>
-      <button class="secondary-btn" @click="go('/safe-exit')">Pauzeer scenario</button>
+      <SecondaryButton text="Pauzeer scenario" @click="go('/safe-exit')" />
     </section>
 
     <section v-else-if="screen === 'safe-exit'" class="content-wrap">
       <h1>Even pauze?</h1>
       <p>Je hoeft niet verder te gaan als het niet goed voelt. Neem een moment voor jezelf. Je kan altijd later opnieuw starten.</p>
       <small>Er wordt niets opgeslagen.</small>
-      <button class="primary-btn" @click="go('/einde')">Ga verder</button>
-      <button class="secondary-btn" @click="go('/loading')">Stop</button>
+      <PrimaryButton text="Ga verder" @click="go('/einde')" />
+      <SecondaryButton text="Stop" @click="go('/loading')" />
     </section>
 
     <section v-else-if="screen === 'einde'" class="content-wrap">
@@ -95,7 +98,7 @@ const go = (path) => router.push(path)
         <li>Blijf respectvol, ook als je teleurgesteld bent</li>
         <li>Grenzen werken in twee richtingen</li>
       </ul>
-      <button class="secondary-btn" @click="go('/scenario-lijst')">Afronden</button>
+      <SecondaryButton text="Afronden" @click="go('/scenario-lijst')" />
     </section>
 
     <section v-else-if="screen === 'faq'" class="content-wrap">

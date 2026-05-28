@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import BaseButton from '@/components/BaseButton.vue'
 
 const props = defineProps({
   backTo: {
@@ -16,7 +17,20 @@ const goFaq = () => router.push({ path: '/faq', query: { backTo: props.backTo } 
 
 <template>
   <header class="top-nav">
-    <button class="link-btn back-btn" @click="goBack"><img src="../assets/icons/fi-rr-arrow-small-left.svg" alt="Terug" />Terug</button>
-    <button class="icon-btn" @click="goFaq"><img src="../assets/icons/fi-rr-interrogation.svg" alt="FAQ" /></button>
+    <BaseButton variant="link" class="back-btn" :full-width="false" @click="goBack">
+      <template #icon-left>
+        <img src="../assets/icons/fi-rr-arrow-small-left.svg" alt="" aria-hidden="true" />
+      </template>
+      Terug
+    </BaseButton>
+
+    <BaseButton
+      variant="icon"
+      :full-width="false"
+      aria-label="FAQ"
+      @click="goFaq"
+    >
+      <img src="../assets/icons/fi-rr-interrogation.svg" alt="" aria-hidden="true" />
+    </BaseButton>
   </header>
 </template>

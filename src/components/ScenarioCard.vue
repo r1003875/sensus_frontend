@@ -1,4 +1,6 @@
 <script setup>
+import PrimaryButton from '@/components/PrimaryButton.vue'
+
 defineProps({
   title: String,
   description: String,
@@ -13,6 +15,6 @@ defineEmits(['start'])
     <h2>{{ title }}</h2>
     <p>{{ description }}</p>
     <small>{{ tag }}</small>
-    <button class="primary-btn" @click="$emit('start')">Start</button>
+    <PrimaryButton text="Start" @click="$emit('start')" />
   </article>
 </template>

@@ -3,6 +3,8 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
+import SecondaryButton from '@/components/SecondaryButton.vue'
+import pauseIcon from '@/assets/icons/fi-rr-pause-blue.svg'
 import { fetchScenario, fetchScenarioScenes } from '@/services/api'
 import { useSessionStore } from '@/stores/sessionStore'
 
@@ -377,14 +379,12 @@ onMounted(async () => {
               <p v-if="choiceInputErrors[getChoiceKey(choice, choiceIndex)]" class="choice-input-error">
                 {{ choiceInputErrors[getChoiceKey(choice, choiceIndex)] }}
               </p>
-              <button
-                type="button"
-                class="primary-btn scene-choice-action"
+              <PrimaryButton
+                class="scene-choice-action"
+                :text="routingLoading ? 'Bezig...' : 'Ga verder'"
                 :disabled="routingLoading || !getChoiceInputValue(choice, choiceIndex).trim()"
                 @click="handleChoice(choice, choiceIndex)"
-              >
-                {{ routingLoading ? 'Bezig...' : 'Ga verder' }}
-              </button>
+              />
             </template>
 
             <PrimaryButton
@@ -395,10 +395,12 @@ onMounted(async () => {
           </div>
         </section>
 
-        <button type="button" class="secondary-btn scene-pause-btn" @click="pauseScenario">
-          <span>Pauzeer scenario</span>
-          <img src="../assets/icons/fi-rr-pause-blue.svg" alt="" class="scene-pause-icon" aria-hidden="true" />
-        </button>
+        <SecondaryButton
+          class="scene-pause-btn"
+          text="Pauzeer scenario"
+          :icon-right="pauseIcon"
+          @click="pauseScenario"
+        />
       </template>
     </section>
   </main>
@@ -434,11 +436,6 @@ onMounted(async () => {
 }
 
 .scene-choice-input:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.scene-choice-action:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -480,8 +477,4 @@ onMounted(async () => {
   border: 1px solid var(--blue-300);
 }
 
-.scene-pause-icon {
-  width: 18px;
-  height: 18px;
-}
 </style>
