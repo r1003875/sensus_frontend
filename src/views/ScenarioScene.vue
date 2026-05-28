@@ -26,6 +26,7 @@ const routingLoading = ref(false)
 const scenarioDocumentId = computed(() => String(route.params.documentId || ''))
 const sceneIndex = computed(() => Number(route.params.sceneIndex || 1))
 const scenarioTitle = computed(() => String(scenario.value?.title || ''))
+const scenarioSceneRoute = computed(() => route.fullPath)
 
 const getSceneById = (sceneId) => scenes.value.find((scene) => String(scene.documentId ?? scene.id) === String(sceneId)) ?? null
 
@@ -338,7 +339,7 @@ onMounted(async () => {
 
 <template>
   <main class="app-screen">
-    <TopNav :backTo="`/intro-scenario/${scenarioDocumentId}`" />
+    <TopNav :back-to="`/intro-scenario/${scenarioDocumentId}`" :show-back="false" :faq-back-to="scenarioSceneRoute" />
     <section class="content-wrap">
       <p v-if="loading">Scenes worden geladen...</p>
 

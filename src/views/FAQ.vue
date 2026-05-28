@@ -2,11 +2,24 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
+import { useSessionStore } from '@/stores/sessionStore'
 
 const route = useRoute()
 const router = useRouter()
+const sessionStore = useSessionStore()
 
-const backTo = computed(() => (typeof route.query.backTo === 'string' && route.query.backTo) || '/')
+const backTo = computed(() => {
+  if (typeof route.query.backTo === 'string' && route.query.backTo) {
+    return route.query.backTo
+  }
+
+  const lastScenarioLocation = sessionStore.getLastScenarioLocation?.()
+  if (lastScenarioLocation) {
+    return router.resolve(lastScenarioLocation).fullPath
+  }
+
+  return '/scenario-lijst'
+})
 
 const goPrivacy = () => router.push({ path: '/privacybeleid', query: { backTo: backTo.value } })
 const goTerms = () => router.push({ path: '/gebruikersvoorwaarden', query: { backTo: backTo.value } })
@@ -14,7 +27,7 @@ const goTerms = () => router.push({ path: '/gebruikersvoorwaarden', query: { bac
 
 <template>
   <main class="app-screen">
-    <TopNav :backTo="backTo" />
+    <TopNav :back-to="backTo" />
     <section class="content-wrap">
       <h1>FAQ</h1>
       <h2>Hoe werkt deze tool?</h2>

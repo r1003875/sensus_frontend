@@ -5,19 +5,44 @@ import BaseButton from '@/components/BaseButton.vue'
 const props = defineProps({
   backTo: {
     type: String,
-    required: true,
+    default: '',
+  },
+  showBack: {
+    type: Boolean,
+    default: true,
+  },
+  faqBackTo: {
+    type: String,
+    default: '',
   },
 })
 
 const router = useRouter()
 
-const goBack = () => router.push(props.backTo)
-const goFaq = () => router.push({ path: '/faq', query: { backTo: props.backTo } })
+const goBack = () => {
+  if (!props.backTo) {
+    return
+  }
+
+  router.push(props.backTo)
+}
+
+const goFaq = () => {
+  const backTo = props.faqBackTo || props.backTo
+
+  router.push(backTo ? { path: '/faq', query: { backTo } } : '/faq')
+}
 </script>
 
 <template>
-  <header class="top-nav">
-    <BaseButton variant="link" class="back-btn" :full-width="false" @click="goBack">
+  <header class="top-nav" :class="{ 'top-nav--no-back': !(showBack && backTo) }">
+    <BaseButton
+      v-if="showBack && backTo"
+      variant="link"
+      class="back-btn"
+      :full-width="false"
+      @click="goBack"
+    >
       <template #icon-left>
         <img src="../assets/icons/fi-rr-arrow-small-left.svg" alt="" aria-hidden="true" />
       </template>

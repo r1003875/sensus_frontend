@@ -177,6 +177,8 @@ const getResumeRoute = () => {
   }
 }
 
+const getLastScenarioLocation = () => getResumeRoute()
+
 const setUserProfile = ({ userAge = '', userGender = '' } = {}) => {
   sessionState.userAge = userAge
   sessionState.userGender = userGender
@@ -366,6 +368,7 @@ sessionState.setScenarioProgress = setScenarioProgress
 sessionState.pauseScenario = pauseScenario
 sessionState.clearPausedState = clearPausedState
 sessionState.getResumeRoute = getResumeRoute
+sessionState.getLastScenarioLocation = getLastScenarioLocation
 sessionState.discardSession = discardSession
 
 export const useSessionStore = () => sessionState

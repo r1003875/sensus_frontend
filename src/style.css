@@ -104,6 +104,10 @@ body {
   margin-bottom: 24px;
 }
 
+.top-nav--no-back {
+  justify-content: flex-end;
+}
+
 .back-btn {
   display: flex;
   align-items: center;
