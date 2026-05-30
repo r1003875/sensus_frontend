@@ -48,7 +48,7 @@ const learnings = [
     <TopNav backTo="/scenario-lijst" />
     <section class="content-wrap">
       <h1>Je hebt het scenario afgerond!</h1>
-      <p>Goed gedaan! Je hebt scenario 1 succesvol afgerond. Bedankt voor je deelname.</p>
+      <p>Goed gedaan! Bedankt voor je deelname.</p>
       <p>Heb je nog vragen? Aarzel niet om de moderator aan te spreken.</p>
       <p v-if="completionError" class="error-message">{{ completionError }}</p>
       <ul>
