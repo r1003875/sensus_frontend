@@ -1,5 +1,5 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import BaseButton from '@/components/BaseButton.vue'
 
 const props = defineProps({
@@ -17,6 +17,7 @@ const props = defineProps({
   },
 })
 
+const route = useRoute()
 const router = useRouter()
 
 const goBack = () => {
@@ -28,7 +29,7 @@ const goBack = () => {
 }
 
 const goFaq = () => {
-  const backTo = props.faqBackTo || props.backTo
+  const backTo = props.faqBackTo || (route.name === 'faq' ? props.backTo : route.fullPath)
 
   router.push(backTo ? { path: '/faq', query: { backTo } } : '/faq')
 }
