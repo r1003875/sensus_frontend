@@ -17,7 +17,7 @@ defineEmits(['click'])
 
 <template>
 	<BaseButton
-		variant="link"
+		variant="primary"
 		class="tertiary-btn"
 		:text="text"
 		v-bind="$attrs"

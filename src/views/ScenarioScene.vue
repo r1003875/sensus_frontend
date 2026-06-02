@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TopNav from '@/components/TopNav.vue'
-import PrimaryButton from '@/components/PrimaryButton.vue'
+import TertiaryButton from '@/components/TertiaryButton.vue'
 import SecondaryButton from '@/components/SecondaryButton.vue'
 import pauseIcon from '@/assets/icons/fi-rr-pause-blue.svg'
 import { fetchScenario, fetchScenarioScenes } from '@/services/api'
@@ -380,7 +380,7 @@ onMounted(async () => {
               <p v-if="choiceInputErrors[getChoiceKey(choice, choiceIndex)]" class="choice-input-error">
                 {{ choiceInputErrors[getChoiceKey(choice, choiceIndex)] }}
               </p>
-              <PrimaryButton
+              <TertiaryButton
                 class="scene-choice-action"
                 :text="routingLoading ? 'Bezig...' : 'Ga verder'"
                 :disabled="routingLoading || !getChoiceInputValue(choice, choiceIndex).trim()"
@@ -388,7 +388,7 @@ onMounted(async () => {
               />
             </template>
 
-            <PrimaryButton
+            <TertiaryButton
               v-else
               :text="choice.label || 'Ga verder'"
               @click="handleChoice(choice, choiceIndex)"
