@@ -269,6 +269,14 @@ select {
   font-size: 16px;
 }
 
+.tertiary-btn {
+  color: var(--blue-600);
+}
+
+.tertiary-btn:hover {
+  color: var(--blue-700);
+}
+
 .center-message {
   min-height: 60vh;
   display: flex;
